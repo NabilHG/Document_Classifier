@@ -1,0 +1,7 @@
+business: profit loss share growth economy prices sales agreement 
+entertainment: ceremony actress oscar film series director rating movies
+graphics: fractals compression project design graphic visual processing image
+historical: ancient museum century ruins war treaty empire   
+medical: physician infection patient care health disease diagnosis doctor medicine
+space: space launch complex intelligence hazardous planet orbit nasa government 
+sports: medal record score participate world team title training minutes
