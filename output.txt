@@ -1,0 +1,21 @@
+*** Statistics
+Total txt files: 36
+sports: 2.54%
+entertainment: 2.33%
+graphics: 2.07%
+business: 1.97%
+space: 1.93%
+historical: 1.80%
+medical: 1.64%
+
+*** Top 10 Keywords
+sports: 637
+entertainment: 585
+graphics: 519
+space: 507
+business: 495
+historical: 450
+medical: 412
+nasa: 42
+ancient: 38
+war: 28

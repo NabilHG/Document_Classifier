@@ -108,6 +108,69 @@ def Classify_Doc(DFrequencies):
 
     return DVotes, DocCategory
 
+# function to process statistics of all categories ans keywords
+def process_statistics(input_file, output_file):
+    category_totals = {}
+    document_counts = {}
+    keyword_totals = {}
+    total_documents = 0
+
+    with open(input_file, 'r') as f:
+        content = f.readlines()
+        for line in content:
+            # unknown categorie or line not containing .txt, skip it
+            if "UNKNOWN" in line or ".txt" not in line:
+                continue
+
+            total_documents += 1
+
+            # extract category percentages
+            percentages = re.findall(r'(\w+):(\d+\.\d+)%', line)
+            if percentages:
+                for category, percent in percentages:
+                    # Initialize category totals and document counts if not already present
+                    if category not in category_totals:
+                        category_totals[category] = 0.0
+                        document_counts[category] = 0
+                    # Update the total percentage and document count for the category
+                    category_totals[category] += float(percent)
+                    document_counts[category] += 1
+
+            # extract keyword counts
+            keyword_data = re.findall(r'(\w+):(\d+)', line)
+            if keyword_data:
+                for keyword, count in keyword_data:
+                    # avoid double-counting categories as keywords
+                    if f"{keyword}:" not in line:
+                        continue
+                    # Initialize keywords totals if not already present
+                    if keyword not in keyword_totals:
+                        keyword_totals[keyword] = 0
+                    # Update the total count for the keyword   
+                    keyword_totals[keyword] += int(count)
+
+    # calculate the percentage for each category based on total document count
+    total_txt_documents = sum(document_counts.values())
+    category_percentages = {
+        category: (category_totals[category] / total_txt_documents) if total_txt_documents > 0 else 0.0
+        for category in category_totals
+    }
+
+    # determine the top 10 keywords by total occurrences, sorted
+    top_keywords = sorted(keyword_totals.items(), key=lambda x: x[1], reverse=True)[:10]
+
+    # write results to output file
+    with open(output_file, 'w') as out_file:
+        out_file.write("*** Statistics\n")
+        out_file.write(f"Total txt files: {total_documents}\n")
+        # write categories sorted 
+        for category, percentage in sorted(category_percentages.items(), key=lambda x: x[1], reverse=True):
+            out_file.write(f"{category}: {percentage:.2f}%\n")
+        
+        out_file.write("\n*** Top 10 Keywords\n")
+        for keyword, count in top_keywords:
+            out_file.write(f"{keyword}: {count}\n")
+
 
 if __name__ == "__main__":
     DocClass_Welcome()
@@ -119,7 +182,7 @@ if __name__ == "__main__":
         print("The file must be in the same directory of your python script.")
         # checking conditions of validity
         if os.path.exists(filename) and os.path.getsize(filename) != 0:
-            not_valid = False
+                not_valid = False
 
     not_valid = True
 
@@ -129,11 +192,16 @@ if __name__ == "__main__":
         # checking conditions of validity
         if os.path.exists(folder_name) and any(item.endswith(".txt") for item in os.listdir(folder_name)):
             not_valid = False
+
     LKeywords, LCategories = Read_Categories_Keywords(filename)
 
     output_file = os.path.join(folder_name, "_DocClassification.txt")
     with open(output_file, "w") as output:
         for item in os.listdir(folder_name):
+            #skip the output file
+            if item == "_DocClassification.txt":
+                continue
+
             if item.endswith(".txt"):
                 words = Document_Reader(".", folder_name, item)
                 DFrequencies = Count_Frequencies(words, LCategories, LKeywords)
@@ -154,5 +222,6 @@ if __name__ == "__main__":
                 output.write("\n")
             else:
                 output.write(f"Attention: the following non txt file has been detected: {item} in the file {folder_name}_DocClassification.txt")
-
-
+    
+    # computing stastistics
+    process_statistics("ToyExample\docsToyExample\_DocClassification.txt", "output.txt")
