@@ -32,7 +32,7 @@ def Read_Categories_Keywords(filename):
             with open(filename, "r") as f:
                 data = f.readlines() # getting the info line by line 
                 for line in data: # going through all the data and appending the correct info
-                    keywords = set(line.split()[1:])
+                    keywords = set(line.split()[1:]) # getting all minus the first element, because is the category
                     # splitting, getting the first element, accesing the first element because is a list, then taking the word without :
                     category = line.split()[0:1][0][:-1]
                     LKeywords.append(keywords)
@@ -110,12 +110,49 @@ def Classify_Doc(DFrequencies):
 
 
 if __name__ == "__main__":
-    words = ['team', 'care', 'team', '000', 'nasa', 'construction', 'care', 'nasa', 'in', 'october', 'were', 'involved', 'in', 'rebuilding', 'and', 'clean', 'up', 'work', 'in', 'florida', 'and', 'neighbouring', 'deep', 'south', 'states', 'following', 'four', 'hurricanes', 'in']
-    keywords = [{"physician", "infection", "patient", "care"},{"planet","orbit", "nasa"},{"medal", "record", "score", "team", "training"}]
-    categories  =  ["medical", "space", "sports"]
-    # DocClass_Welcome()
-    # Read_Categories_Keywords("test")
-    # Document_Reader("C:/Users/Nabil\Desktop\Proj_DocuemntClassifier\Document_Classifier\ToyExample", "docsToyExample", "document_1.txt")
-    
-    a = Count_Frequencies(words, categories, keywords)
-    Classify_Doc(a)
+    DocClass_Welcome()
+    not_valid = True
+    filename= ''
+    folder_name = ''
+    while not_valid:
+        filename = input("Enter the name of the file containing the categories and the keywords:")
+        print("The file must be in the same directory of your python script.")
+        # checking conditions of validity
+        if os.path.exists(filename) and os.path.getsize(filename) != 0:
+            not_valid = False
+
+    not_valid = True
+
+    while not_valid:
+        folder_name = input("Enter the name of the folder containing the documents:")
+        print("The folder must be in the same directory of your python script.")
+        # checking conditions of validity
+        if os.path.exists(folder_name) and any(item.endswith(".txt") for item in os.listdir(folder_name)):
+            not_valid = False
+    LKeywords, LCategories = Read_Categories_Keywords(filename)
+
+    output_file = os.path.join(folder_name, "_DocClassification.txt")
+    with open(output_file, "w") as output:
+        for item in os.listdir(folder_name):
+            if item.endswith(".txt"):
+                words = Document_Reader(".", folder_name, item)
+                DFrequencies = Count_Frequencies(words, LCategories, LKeywords)
+                DVotes, DocCategory = Classify_Doc(DFrequencies)
+
+                # write the result in the specified format
+                output.write(f"{item}: {DocCategory}(")
+                # write category percentages
+                percentages = [f"{category}:{round(DVotes[category][1], 2)}%" for category in DVotes]
+                output.write(", ".join(percentages) + ")")
+
+                if DocCategory != "UNKNOWN":
+                    output.write(": ")
+                    # write keyword counts
+                    keyword_counts = [f"{keyword}:{DFrequencies[DocCategory].get(keyword, 0)}" for keyword in LKeywords[LCategories.index(DocCategory)]]
+                    output.write(", ".join(keyword_counts))
+
+                output.write("\n")
+            else:
+                output.write(f"Attention: the following non txt file has been detected: {item} in the file {folder_name}_DocClassification.txt")
+
+
